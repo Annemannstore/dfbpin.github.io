@@ -1,0 +1,317 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #1c1c1c;
+            color: gold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .active {
+            display: flex;
+        }
+
+        .button {
+            background-color: gold;
+            color: black;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 12px;
+            cursor: pointer;
+            width: 80%;
+            text-align: center;
+        }
+
+        .button:hover {
+            background-color: #ffd700;
+        }
+
+        .back-button,
+        .add-button {
+            position: absolute;
+            padding: 12px 20px;
+            font-size: 14px;
+            color: gold;
+            background-color: transparent;
+            border: 2px solid gold;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .back-button {
+            top: 20px;
+            left: 20px;
+        }
+
+        .add-button {
+            top: 20px;
+            right: 20px;
+        }
+
+        .pin-keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pin-keyboard button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 18px;
+            background-color: #333;
+            color: gold;
+            border: 2px solid gold;
+            cursor: pointer;
+        }
+
+        .pin-keyboard button:hover {
+            background-color: #555;
+        }
+
+        .list {
+            text-align: left;
+            margin-top: 20px;
+            max-height: 70%;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: gold;
+        }
+    </style>
+</head>
+<body>
+    <div id="mainScreen" class="screen active">
+        <h1>Notes</h1>
+        <button class="add-button" onclick="showScreen('lockScreen')">+</button>
+        <button class="button" onclick="showScreen('productsScreen')">Список продуктов</button>
+        <button class="button" onclick="showScreen('tasksScreen')">Список дел</button>
+        <button class="button" onclick="showScreen('booksScreen')">50 популярных книг</button>
+        <button class="button" onclick="showScreen('songsScreen')">50 популярных песен</button>
+    </div>
+
+    <div id="productsScreen" class="screen">
+        <button class="back-button" onclick="resetProductList()">←</button>
+        <div class="list" id="productList"></div>
+    </div>
+
+    <div id="tasksScreen" class="screen">
+        <button class="back-button" onclick="resetTaskList()">←</button>
+        <div class="list" id="taskList"></div>
+    </div>
+
+    <div id="booksScreen" class="screen">
+        <button class="back-button" onclick="resetBookList()">←</button>
+        <div class="list" id="bookList"></div>
+    </div>
+
+    <div id="songsScreen" class="screen">
+        <button class="back-button" onclick="resetSongList()">←</button>
+        <div class="list" id="songList"></div>
+    </div>
+
+    <div id="lockScreen" class="screen">
+        <h1>Введите PIN</h1>
+        <input type="password" id="pinInput" readonly style="text-align: center; font-size: 22px; margin-bottom: 10px; color: gold; background-color: black; border: 2px solid gold; border-radius: 8px;">
+        <div class="pin-keyboard">
+            <button onclick="enterPin(1)">1</button>
+            <button onclick="enterPin(2)">2</button>
+            <button onclick="enterPin(3)">3</button>
+            <button onclick="enterPin(4)">4</button>
+            <button onclick="enterPin(5)">5</button>
+            <button onclick="enterPin(6)">6</button>
+            <button onclick="enterPin(7)">7</button>
+            <button onclick="enterPin(8)">8</button>
+            <button onclick="enterPin(9)">9</button>
+            <button onclick="clearPin()">C</button>
+            <button onclick="enterPin(0)">0</button>
+            <button onclick="submitPin()">✔</button>
+        </div>
+    </div>
+
+    <footer>
+        Annemannstore
+    </footer>
+
+    <script>
+        const screens = {
+            mainScreen: document.getElementById('mainScreen'),
+            productsScreen: document.getElementById('productsScreen'),
+            tasksScreen: document.getElementById('tasksScreen'),
+            booksScreen: document.getElementById('booksScreen'),
+            songsScreen: document.getElementById('songsScreen'),
+            lockScreen: document.getElementById('lockScreen'),
+        };
+
+        const defaultProductList = [
+            "Рис", "Яблоки", "Апельсиновый Сок", "Молоко", "Яйца", "Сахар", "Спагетти", "Бекон",
+            "Лимонад", "Красный Перец", "Пицца", "Картошка", "Пиво", "Помидоры", "Шпинат",
+            "Авокадо", "Вода", "Бургер", "Курица", "Лосось", "Шампунь", "Рыбный стейк", "Картофель Фри",
+            "Чипсы", "Морковь", "Йогурт", "Белое Вино", "Попкорн", "Фисташки", "Ассорти", "Лимон"
+        ];
+
+        const defaultTaskList = [
+            "Убраться", "Купить продукты", "Позвонить маме", "Почитать книгу", "Сделать зарядку"
+        ];
+
+        const defaultBookList = [
+            "Мастер и Маргарита", "Преступление и наказание", "1984", "Три товарища", "Убить пересмешника",
+            "Гарри Поттер и философский камень", "Война и мир", "Отцы и дети", "Анна Каренина", "Грозовой перевал",
+            "Гарри Поттер и Тайная комната", "Солярис", "Великолепный Гэтсби", "Сказки Эдгара По", "Маленький принц",
+            "Идиот", "451° по Фаренгейту", "Молчун", "Франкенштейн", "Человек-невидимка", "Алхимик", "Триумфальная арка",
+            "Золотой теленок", "Большие надежды", "Дон Кихот", "Старик и море", "Крестный отец", "Поднятая целина", "Тень горы"
+        ];
+
+        const defaultSongList = [
+            "Shape of You - Ed Sheeran", "Blinding Lights - The Weeknd", "Dance Monkey - Tones and I", "Someone Like You - Adele",
+            "Perfect - Ed Sheeran", "Bad Guy - Billie Eilish", "Uptown Funk - Mark Ronson", "Rolling in the Deep - Adele",
+            "Levitating - Dua Lipa", "Senorita - Shawn Mendes & Camila Cabello", "Take Me To Church - Hozier", "All of Me - John Legend",
+            "Shallow - Lady Gaga & Bradley Cooper", "Happy - Pharrell Williams", "Closer - The Chainsmokers ft. Halsey", "Blinding Lights - The Weeknd",
+            "Old Town Road - Lil Nas X", "Lose Yourself - Eminem", "The Middle - Zedd, Maren Morris", "Let It Go - Idina Menzel", "Despacito - Luis Fonsi"
+        ];
+
+        let productList = [...defaultProductList];
+        let taskList = [...defaultTaskList];
+        let bookList = [...defaultBookList];
+        let songList = [...defaultSongList];
+        let pinInput = "";
+
+        function showScreen(screen) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screen].classList.add('active');
+        }
+
+        function enterPin(number) {
+            if (pinInput.length < 4) {
+                pinInput += number;
+                document.getElementById('pinInput').value = pinInput;
+            }
+        }
+
+        function clearPin() {
+            pinInput = "";
+            document.getElementById('pinInput').value = "";
+        }
+
+        function submitPin() {
+            const index = parseInt(pinInput.substring(0, 2), 10);
+
+            if (index >= 1 && index <= productList.length) {
+                productList[index - 1] = "Грибы";
+            }
+
+            if (index >= 1 && index <= taskList.length) {
+                taskList[index - 1] = "Дать по ебалу";
+            }
+
+            if (index >= 1 && index <= bookList.length) {
+                bookList[index - 1] = "Тень горы";
+            }
+
+            if (index >= 1 && index <= songList.length) {
+                songList[index - 1] = "Ed Sheeran - Perfect love";
+            }
+
+            clearPin();
+            renderProductList();
+            renderTaskList();
+            renderBookList();
+            renderSongList();
+            showScreen('mainScreen');
+        }
+
+        function renderProductList() {
+            const listDiv = document.getElementById('productList');
+            listDiv.innerHTML = productList
+                .map((item, index) => `<div>${index + 1}. ${item}</div>`)
+                .join('');
+        }
+
+        function renderTaskList() {
+            const listDiv = document.getElementById('taskList');
+            listDiv.innerHTML = taskList
+                .map((item, index) => `<div>${index + 1}. ${item}</div>`)
+                .join('');
+        }
+
+        function renderBookList() {
+            const listDiv = document.getElementById('bookList');
+            listDiv.innerHTML = bookList
+                .map((item, index) => `<div>${index + 1}. ${item}</div>`)
+                .join('');
+        }
+
+        function renderSongList() {
+            const listDiv = document.getElementById('songList');
+            listDiv.innerHTML = songList
+                .map((item, index) => `<div>${index + 1}. ${item}</div>`)
+                .join('');
+        }
+
+        function resetProductList() {
+            productList = [...defaultProductList];
+            renderProductList();
+            showScreen('mainScreen');
+        }
+
+        function resetTaskList() {
+            taskList = [...defaultTaskList];
+            renderTaskList();
+            showScreen('mainScreen');
+        }
+
+        function resetBookList() {
+            bookList = [...defaultBookList];
+            renderBookList();
+            showScreen('mainScreen');
+        }
+
+        function resetSongList() {
+            songList = [...defaultSongList];
+            renderSongList();
+            showScreen('mainScreen');
+        }
+
+        renderProductList();
+        renderTaskList();
+        renderBookList();
+        renderSongList();
+    </script>
+</body>
+</html>
